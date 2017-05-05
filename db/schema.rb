@@ -10,7 +10,26 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170428051812) do
+ActiveRecord::Schema.define(version: 20170505001710) do
+
+  create_table "cangaroo_connections", force: :cascade do |t|
+    t.string   "name"
+    t.string   "url"
+    t.string   "key"
+    t.string   "token"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.text     "parameters"
+  end
+
+  create_table "cangaroo_poll_timestamps", force: :cascade do |t|
+    t.string   "job"
+    t.integer  "connection_id"
+    t.text     "value"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.index ["job"], name: "index_cangaroo_poll_timestamps_on_job"
+  end
 
   create_table "friendly_id_slugs", force: :cascade do |t|
     t.string   "slug",                      null: false
@@ -362,6 +381,7 @@ ActiveRecord::Schema.define(version: 20170428051812) do
     t.string   "number"
     t.string   "cvv_response_code"
     t.string   "cvv_response_message"
+    t.index ["number"], name: "index_spree_payments_on_number", unique: true
     t.index ["order_id"], name: "index_spree_payments_on_order_id"
     t.index ["payment_method_id"], name: "index_spree_payments_on_payment_method_id"
     t.index ["source_id", "source_type"], name: "index_spree_payments_on_source_id_and_source_type"
@@ -480,11 +500,25 @@ ActiveRecord::Schema.define(version: 20170428051812) do
     t.string   "code"
   end
 
+  create_table "spree_promotion_code_batches", force: :cascade do |t|
+    t.integer  "promotion_id",                        null: false
+    t.string   "base_code",                           null: false
+    t.integer  "number_of_codes",                     null: false
+    t.string   "email"
+    t.string   "error"
+    t.string   "state",           default: "pending"
+    t.datetime "created_at",                          null: false
+    t.datetime "updated_at",                          null: false
+    t.index ["promotion_id"], name: "index_spree_promotion_code_batches_on_promotion_id"
+  end
+
   create_table "spree_promotion_codes", force: :cascade do |t|
-    t.integer  "promotion_id", null: false
-    t.string   "value",        null: false
+    t.integer  "promotion_id",            null: false
+    t.string   "value",                   null: false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "promotion_code_batch_id"
+    t.index ["promotion_code_batch_id"], name: "index_spree_promotion_codes_on_promotion_code_batch_id"
     t.index ["promotion_id"], name: "index_spree_promotion_codes_on_promotion_id"
     t.index ["value"], name: "index_spree_promotion_codes_on_value", unique: true
   end
@@ -909,12 +943,11 @@ ActiveRecord::Schema.define(version: 20170428051812) do
     t.integer  "user_id"
     t.integer  "category_id"
     t.integer  "created_by_id"
-    t.decimal  "amount",              precision: 8, scale: 2, default: "0.0", null: false
-    t.decimal  "amount_used",         precision: 8, scale: 2, default: "0.0", null: false
-    t.decimal  "amount_authorized",   precision: 8, scale: 2, default: "0.0", null: false
+    t.decimal  "amount",            precision: 8, scale: 2, default: "0.0", null: false
+    t.decimal  "amount_used",       precision: 8, scale: 2, default: "0.0", null: false
+    t.decimal  "amount_authorized", precision: 8, scale: 2, default: "0.0", null: false
     t.string   "currency"
     t.text     "memo"
-    t.datetime "spree_store_credits"
     t.datetime "deleted_at"
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -1132,6 +1165,17 @@ ActiveRecord::Schema.define(version: 20170428051812) do
     t.index ["sku"], name: "index_spree_variants_on_sku"
     t.index ["tax_category_id"], name: "index_spree_variants_on_tax_category_id"
     t.index ["track_inventory"], name: "index_spree_variants_on_track_inventory"
+  end
+
+  create_table "spree_wallet_payment_sources", force: :cascade do |t|
+    t.integer  "user_id",                             null: false
+    t.string   "payment_source_type",                 null: false
+    t.integer  "payment_source_id",                   null: false
+    t.boolean  "default",             default: false, null: false
+    t.datetime "created_at",                          null: false
+    t.datetime "updated_at",                          null: false
+    t.index ["user_id", "payment_source_id", "payment_source_type"], name: "index_spree_wallet_payment_sources_on_source_and_user", unique: true
+    t.index ["user_id"], name: "index_spree_wallet_payment_sources_on_user_id"
   end
 
   create_table "spree_zone_members", force: :cascade do |t|
